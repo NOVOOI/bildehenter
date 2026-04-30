@@ -340,10 +340,7 @@
       <input type="text" id="productName" placeholder="f.eks. HAG Celi 9140">
     </div>
 
-    <div class="field">
-      <label>Worker URL</label>
-      <input type="url" id="workerUrl" placeholder="https://bildehenter-worker.DITT-NAVN.workers.dev">
-    </div>
+    <input type="hidden" id="workerUrl" value="https://bildehenter-worker.marcus-aas-mekiassen.workers.dev">
 
   </div>
 
@@ -426,7 +423,6 @@ async function analyze() {
 
   if (!csvContent) return alert("Last opp en CSV-fil først.");
   if (!url)        return alert("Lim inn leverandørens URL.");
-  if (!workerUrl)  return alert("Skriv inn Worker URL.");
 
   // Reset
   fullResponse = ""; scriptCode = ""; analysisText = "";
