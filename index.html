@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bildehenter — Novooi</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --cream:   #f5f0e8;
+    --warm:    #ede8dc;
+    --ink:     #1a1714;
+    --muted:   #6b6560;
+    --accent:  #8b6f47;
+    --border:  #d4ccbd;
+    --green:   #4a6741;
+    --red:     #8b3a3a;
+    --mono:    'Courier Prime', monospace;
+    --serif:   'Cormorant Garamond', Georgia, serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--cream);
+    color: var(--ink);
+    font-family: var(--serif);
+    font-size: 17px;
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+
+  /* ── Header ─────────────────────────────────────────────── */
+  header {
+    border-bottom: 1px solid var(--border);
+    padding: 28px 48px;
+    display: flex;
+    align-items: baseline;
+    gap: 20px;
+  }
+  .logo {
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-family: var(--mono);
+  }
+  header h1 {
+    font-size: 22px;
+    font-weight: 400;
+    font-style: italic;
+    letter-spacing: 0.02em;
+  }
+
+  /* ── Main layout ─────────────────────────────────────────── */
+  main {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 52px 48px 80px;
+  }
+
+  .intro {
+    margin-bottom: 48px;
+  }
+  .intro p {
+    font-size: 19px;
+    font-weight: 300;
+    color: var(--muted);
+    max-width: 620px;
+    line-height: 1.7;
+  }
+
+  /* ── Form ────────────────────────────────────────────────── */
+  .form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin-bottom: 24px;
+  }
+  @media (max-width: 680px) { .form-grid { grid-template-columns: 1fr; } }
+
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .field.full { grid-column: 1 / -1; }
+
+  label {
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-family: var(--mono);
+  }
+
+  input[type="text"], input[type="url"] {
+    background: var(--warm);
+    border: 1px solid var(--border);
+    color: var(--ink);
+    font-family: var(--mono);
+    font-size: 13px;
+    padding: 12px 14px;
+    outline: none;
+    transition: border-color 0.2s;
+    width: 100%;
+  }
+  input:focus { border-color: var(--accent); }
+
+  .file-drop {
+    background: var(--warm);
+    border: 1px dashed var(--border);
+    padding: 28px 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+    position: relative;
+  }
+  .file-drop:hover, .file-drop.drag { border-color: var(--accent); background: #eae4d8; }
+  .file-drop input[type="file"] {
+    position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;
+  }
+  .file-drop .drop-label {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--muted);
+    pointer-events: none;
+  }
+  .file-drop .drop-label strong { color: var(--ink); }
+  .file-name {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--green);
+    margin-top: 6px;
+  }
+
+  .btn-primary {
+    background: var(--ink);
+    color: var(--cream);
+    border: none;
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 14px 36px;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.1s;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .btn-primary:hover { background: #2d2926; }
+  .btn-primary:active { transform: scale(0.98); }
+  .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .btn-secondary {
+    background: transparent;
+    color: var(--ink);
+    border: 1px solid var(--border);
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 10px 20px;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+  }
+  .btn-secondary:hover { border-color: var(--ink); background: var(--warm); }
+
+  /* ── Status / Log ────────────────────────────────────────── */
+  .status-bar {
+    display: none;
+    align-items: center;
+    gap: 12px;
+    margin: 32px 0 0;
+    padding: 14px 18px;
+    background: var(--warm);
+    border: 1px solid var(--border);
+    font-family: var(--mono);
+    font-size: 12px;
+  }
+  .status-bar.visible { display: flex; }
+  .spinner {
+    width: 14px; height: 14px;
+    border: 2px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    flex-shrink: 0;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── Output ──────────────────────────────────────────────── */
+  #output { margin-top: 48px; display: none; }
+  #output.visible { display: block; }
+
+  .section-title {
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-family: var(--mono);
+    margin-bottom: 16px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .analysis-box {
+    background: var(--warm);
+    border: 1px solid var(--border);
+    padding: 24px 28px;
+    margin-bottom: 32px;
+    font-size: 16px;
+    line-height: 1.8;
+    white-space: pre-wrap;
+    max-height: 320px;
+    overflow-y: auto;
+  }
+  .analysis-box h2 { font-size: 18px; font-weight: 400; margin: 20px 0 8px; }
+  .analysis-box h2:first-child { margin-top: 0; }
+  .analysis-box table { border-collapse: collapse; width: 100%; margin: 12px 0; font-family: var(--mono); font-size: 12px; }
+  .analysis-box td, .analysis-box th { border: 1px solid var(--border); padding: 6px 10px; text-align: left; }
+  .analysis-box th { background: var(--cream); }
+
+  .script-container { position: relative; }
+  .script-actions {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 10px;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .script-actions span {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+  }
+
+  pre#script-output {
+    background: #1a1714;
+    color: #e8e2d8;
+    font-family: var(--mono);
+    font-size: 12.5px;
+    line-height: 1.6;
+    padding: 28px;
+    overflow-x: auto;
+    max-height: 520px;
+    overflow-y: auto;
+    white-space: pre;
+  }
+
+  .copy-toast {
+    position: fixed;
+    bottom: 32px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--ink);
+    color: var(--cream);
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    padding: 10px 24px;
+    opacity: 0;
+    transition: opacity 0.3s, transform 0.3s;
+    pointer-events: none;
+  }
+  .copy-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  .instructions {
+    margin-top: 28px;
+    padding: 24px 28px;
+    background: var(--warm);
+    border-left: 3px solid var(--accent);
+    font-size: 15px;
+  }
+  .instructions h3 { font-size: 16px; font-weight: 500; margin-bottom: 12px; }
+  .instructions ol { padding-left: 20px; }
+  .instructions li { margin-bottom: 8px; }
+  .instructions code {
+    font-family: var(--mono);
+    font-size: 12px;
+    background: rgba(0,0,0,0.07);
+    padding: 2px 6px;
+  }
+
+  .error-box {
+    display: none;
+    background: #fdf0f0;
+    border: 1px solid #e8b4b4;
+    color: var(--red);
+    padding: 16px 20px;
+    font-family: var(--mono);
+    font-size: 13px;
+    margin-top: 20px;
+  }
+  .error-box.visible { display: block; }
+
+  /* Markdown rendering in analysis */
+  .md-rendered h2 { font-family: var(--serif); font-size: 20px; font-weight: 400; font-style: italic; margin: 20px 0 10px; }
+  .md-rendered p { margin-bottom: 12px; }
+  .md-rendered table { border-collapse: collapse; width: 100%; margin: 16px 0; }
+  .md-rendered td, .md-rendered th { border: 1px solid var(--border); padding: 8px 12px; font-family: var(--mono); font-size: 12px; }
+  .md-rendered th { background: #ede8dc; }
+  .md-rendered code { font-family: var(--mono); font-size: 12px; background: rgba(0,0,0,0.06); padding: 1px 5px; }
+</style>
+</head>
+<body>
+
+<header>
+  <span class="logo">Novooi</span>
+  <h1>Bildehenter</h1>
+</header>
+
+<main>
+  <div class="intro">
+    <p>Last opp en ferdig CSV fra CSV-agenten og lim inn leverandørens produktside. Agenten analyserer strukturen og genererer et Python-script som laster ned bilder for alle variantene.</p>
+  </div>
+
+  <!-- Form -->
+  <div class="form-grid">
+
+    <div class="field full">
+      <label>CSV-fil fra CSV-agenten</label>
+      <div class="file-drop" id="dropZone">
+        <input type="file" id="csvFile" accept=".csv">
+        <div class="drop-label">
+          <strong>Klikk for å velge</strong> eller dra CSV-filen hit
+        </div>
+      </div>
+      <div class="file-name" id="fileName"></div>
+    </div>
+
+    <div class="field full">
+      <label>Leverandørens produktside / konfigurator-URL</label>
+      <input type="url" id="supplierUrl" placeholder="https://store.flokk.com/norway/en-gb/products/9140/configure?...">
+    </div>
+
+    <div class="field">
+      <label>Produktnavn (valgfritt)</label>
+      <input type="text" id="productName" placeholder="f.eks. HAG Celi 9140">
+    </div>
+
+    <div class="field">
+      <label>Worker URL</label>
+      <input type="url" id="workerUrl" placeholder="https://bildehenter-worker.DITT-NAVN.workers.dev">
+    </div>
+
+  </div>
+
+  <button class="btn-primary" id="analyzeBtn" onclick="analyze()">
+    <span>Analyser og generer script</span>
+  </button>
+
+  <div class="status-bar" id="statusBar">
+    <div class="spinner"></div>
+    <span id="statusText">Analyserer leverandørsiden…</span>
+  </div>
+
+  <div class="error-box" id="errorBox"></div>
+
+  <!-- Output -->
+  <div id="output">
+
+    <div class="section-title">Analyse</div>
+    <div class="analysis-box md-rendered" id="analysisText"></div>
+
+    <div class="section-title">Generert Python-script</div>
+    <div class="script-container">
+      <div class="script-actions">
+        <span id="scriptMeta"></span>
+        <div style="display:flex;gap:10px">
+          <button class="btn-secondary" onclick="copyScript()">Kopier script</button>
+          <button class="btn-secondary" onclick="downloadScript()">Last ned .py</button>
+        </div>
+      </div>
+      <pre id="script-output"></pre>
+    </div>
+
+    <div class="instructions" id="instructions"></div>
+
+  </div>
+
+</main>
+
+<div class="copy-toast" id="copyToast">Script kopiert</div>
+
+<script>
+// ── State ──────────────────────────────────────────────────────────────────────
+let csvContent   = "";
+let fullResponse = "";
+let scriptCode   = "";
+let analysisText = "";
+
+// ── File drop ──────────────────────────────────────────────────────────────────
+const dropZone = document.getElementById("dropZone");
+const csvFile  = document.getElementById("csvFile");
+
+dropZone.addEventListener("dragover", e => { e.preventDefault(); dropZone.classList.add("drag"); });
+dropZone.addEventListener("dragleave", () => dropZone.classList.remove("drag"));
+dropZone.addEventListener("drop", e => {
+  e.preventDefault();
+  dropZone.classList.remove("drag");
+  const file = e.dataTransfer.files[0];
+  if (file) loadFile(file);
+});
+csvFile.addEventListener("change", e => {
+  if (e.target.files[0]) loadFile(e.target.files[0]);
+});
+
+function loadFile(file) {
+  document.getElementById("fileName").textContent = "✓ " + file.name;
+  const reader = new FileReader();
+  reader.onload = e => { csvContent = e.target.result; };
+  reader.readAsText(file, "UTF-8");
+  if (!document.getElementById("productName").value) {
+    const guess = file.name.replace(/\.csv$/i, "").replace(/_/g, " ");
+    document.getElementById("productName").value = guess;
+  }
+}
+
+// ── Analyse ────────────────────────────────────────────────────────────────────
+async function analyze() {
+  const url        = document.getElementById("supplierUrl").value.trim();
+  const workerUrl  = document.getElementById("workerUrl").value.trim();
+  const productName= document.getElementById("productName").value.trim();
+
+  if (!csvContent) return alert("Last opp en CSV-fil først.");
+  if (!url)        return alert("Lim inn leverandørens URL.");
+  if (!workerUrl)  return alert("Skriv inn Worker URL.");
+
+  // Reset
+  fullResponse = ""; scriptCode = ""; analysisText = "";
+  document.getElementById("output").classList.remove("visible");
+  document.getElementById("errorBox").classList.remove("visible");
+  document.getElementById("analysisText").innerHTML = "";
+  document.getElementById("script-output").textContent = "";
+  document.getElementById("instructions").innerHTML = "";
+
+  setStatus(true, "Analyserer leverandørsiden…");
+  document.getElementById("analyzeBtn").disabled = true;
+
+  try {
+    const res = await fetch(workerUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ csv_content: csvContent, supplier_url: url, product_name: productName }),
+    });
+
+    if (!res.ok) throw new Error(`Worker svarte ${res.status}: ${await res.text()}`);
+
+    const reader = res.body.getReader();
+    const dec    = new TextDecoder();
+    let buffer   = "";
+
+    setStatus(true, "Genererer script…");
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buffer += dec.decode(value, { stream: true });
+      const lines = buffer.split("\n");
+      buffer = lines.pop();
+
+      for (const line of lines) {
+        if (!line.startsWith("data: ")) continue;
+        const data = line.slice(6);
+        if (data === "[DONE]") continue;
+        try {
+          const parsed = JSON.parse(data);
+          if (parsed.text) {
+            fullResponse += parsed.text;
+            renderResponse(fullResponse);
+          }
+        } catch { /* ignore */ }
+      }
+    }
+
+    parseResponse(fullResponse);
+    setStatus(false);
+    document.getElementById("output").classList.add("visible");
+
+  } catch(err) {
+    setStatus(false);
+    showError(err.message);
+  } finally {
+    document.getElementById("analyzeBtn").disabled = false;
+  }
+}
+
+// ── Render streaming ───────────────────────────────────────────────────────────
+function renderResponse(text) {
+  // Live-preview av analyse-delen (alt før ```python)
+  const scriptStart = text.indexOf("```python");
+  const preview = scriptStart >= 0 ? text.slice(0, scriptStart) : text;
+  document.getElementById("analysisText").innerHTML = simpleMarkdown(preview);
+
+  // Vis script live mens det strømmer
+  if (scriptStart >= 0) {
+    const afterPython = text.slice(scriptStart + 9);
+    const scriptEnd   = afterPython.indexOf("```");
+    const partial     = scriptEnd >= 0 ? afterPython.slice(0, scriptEnd) : afterPython;
+    document.getElementById("script-output").textContent = partial.trimStart();
+    document.getElementById("output").classList.add("visible");
+  }
+}
+
+function parseResponse(text) {
+  const scriptMatch = text.match(/```python\n?([\s\S]*?)```/);
+  scriptCode = scriptMatch ? scriptMatch[1].trim() : "";
+
+  const scriptStart = text.indexOf("```python");
+  const afterScript = scriptMatch ? text.slice(text.indexOf("```", scriptStart + 9) + 3) : "";
+
+  // Analyse-del (alt frem til scriptet, minus overskriften)
+  const beforeScript = scriptStart >= 0 ? text.slice(0, scriptStart) : text;
+  document.getElementById("analysisText").innerHTML = simpleMarkdown(beforeScript);
+
+  // Script
+  document.getElementById("script-output").textContent = scriptCode;
+
+  const variantCount = (csvContent.match(/;variation;/g) || []).length;
+  document.getElementById("scriptMeta").textContent =
+    `${variantCount} varianter funnet i CSV`;
+
+  // Instruksjoner
+  const instrMatch = afterScript.match(/##\s*Kjøreinstruksjoner([\s\S]*?)(?:##|$)/i);
+  const instrText  = instrMatch ? instrMatch[1].trim() : "";
+  document.getElementById("instructions").innerHTML =
+    `<h3>Slik kjører du scriptet</h3>` +
+    (instrText
+      ? simpleMarkdown(instrText)
+      : `<ol>
+           <li>Lagre scriptet som <code>last_ned_bilder.py</code></li>
+           <li>Åpne Terminal og naviger til mappen</li>
+           <li>Installer avhengigheter: <code>pip3 install playwright pillow && playwright install chromium</code></li>
+           <li>Kjør: <code>python3 last_ned_bilder.py</code></li>
+           <li>Bilder lagres i <code>bilder/</code>-mappen</li>
+         </ol>`
+    );
+}
+
+// ── Hjelpefunksjoner ───────────────────────────────────────────────────────────
+function simpleMarkdown(text) {
+  return text
+    .replace(/^## (.+)$/gm, '<h2>$1</h2>')
+    .replace(/^### (.+)$/gm, '<h3 style="font-size:17px;font-weight:500;margin:16px 0 8px">$1</h3>')
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/`([^`]+)`/g, '<code>$1</code>')
+    .replace(/^\| (.+)$/gm, (_, row) => {
+      if (row.replace(/[|\s-]/g, '') === '') return '<tr><td colspan="10" style="border:none;height:4px"></td></tr>';
+      const cells = row.split('|').map(c => c.trim());
+      return '<tr>' + cells.map(c => `<td>${c}</td>`).join('') + '</tr>';
+    })
+    .replace(/(<tr>.*<\/tr>\n?)+/g, m => `<table>${m}</table>`)
+    .replace(/\n\n/g, '</p><p>')
+    .replace(/^(?!<[h|t|p])(.+)$/gm, '$1')
+    .replace(/<\/p><p>/g, '</p>\n<p>');
+}
+
+function setStatus(visible, text = "") {
+  const bar = document.getElementById("statusBar");
+  bar.classList.toggle("visible", visible);
+  if (text) document.getElementById("statusText").textContent = text;
+}
+
+function showError(msg) {
+  const box = document.getElementById("errorBox");
+  box.textContent = "Feil: " + msg;
+  box.classList.add("visible");
+}
+
+function copyScript() {
+  if (!scriptCode) return;
+  navigator.clipboard.writeText(scriptCode).then(() => {
+    const toast = document.getElementById("copyToast");
+    toast.classList.add("show");
+    setTimeout(() => toast.classList.remove("show"), 2200);
+  });
+}
+
+function downloadScript() {
+  if (!scriptCode) return;
+  const name = (document.getElementById("productName").value || "bildehenter")
+    .toLowerCase().replace(/\s+/g, "_").replace(/[^a-z0-9_]/g, "");
+  const blob = new Blob([scriptCode], { type: "text/plain" });
+  const a    = document.createElement("a");
+  a.href     = URL.createObjectURL(blob);
+  a.download = `last_ned_bilder_${name}.py`;
+  a.click();
+}
+</script>
+</body>
+</html>
