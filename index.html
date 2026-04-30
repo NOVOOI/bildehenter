@@ -6,302 +6,118 @@
 <title>Bildehenter — Novooi</title>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --cream:   #f5f0e8;
-    --warm:    #ede8dc;
-    --ink:     #1a1714;
-    --muted:   #6b6560;
-    --accent:  #8b6f47;
-    --border:  #d4ccbd;
-    --green:   #4a6741;
-    --red:     #8b3a3a;
-    --mono:    'Courier Prime', monospace;
-    --serif:   'Cormorant Garamond', Georgia, serif;
-  }
+:root {
+  --cream: #f5f0e8; --warm: #ede8dc; --ink: #1a1714; --muted: #6b6560;
+  --accent: #8b6f47; --border: #d4ccbd; --green: #4a6741; --red: #8b3a3a;
+  --mono: 'Courier Prime', monospace; --serif: 'Cormorant Garamond', Georgia, serif;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--cream); color: var(--ink); font-family: var(--serif); font-size: 17px; line-height: 1.6; min-height: 100vh; }
 
-  * { box-sizing: border-box; margin: 0; padding: 0; }
+header { border-bottom: 1px solid var(--border); padding: 24px 48px; display: flex; align-items: baseline; gap: 20px; }
+.logo { font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--muted); font-family: var(--mono); }
+header h1 { font-size: 22px; font-weight: 400; font-style: italic; }
 
-  body {
-    background: var(--cream);
-    color: var(--ink);
-    font-family: var(--serif);
-    font-size: 17px;
-    line-height: 1.6;
-    min-height: 100vh;
-  }
+main { max-width: 900px; margin: 0 auto; padding: 48px 48px 80px; }
 
-  /* ── Header ─────────────────────────────────────────────── */
-  header {
-    border-bottom: 1px solid var(--border);
-    padding: 28px 48px;
-    display: flex;
-    align-items: baseline;
-    gap: 20px;
-  }
-  .logo {
-    font-size: 11px;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    color: var(--muted);
-    font-family: var(--mono);
-  }
-  header h1 {
-    font-size: 22px;
-    font-weight: 400;
-    font-style: italic;
-    letter-spacing: 0.02em;
-  }
+/* Server status pill */
+.server-pill { display: inline-flex; align-items: center; gap: 8px; font-family: var(--mono); font-size: 11px; letter-spacing: 0.1em; padding: 6px 14px; border: 1px solid var(--border); margin-bottom: 36px; }
+.server-pill .dot { width: 7px; height: 7px; border-radius: 50%; background: #ccc; flex-shrink: 0; }
+.server-pill.connected .dot { background: var(--green); }
+.server-pill.disconnected .dot { background: var(--red); }
 
-  /* ── Main layout ─────────────────────────────────────────── */
-  main {
-    max-width: 960px;
-    margin: 0 auto;
-    padding: 52px 48px 80px;
-  }
+/* Steps */
+.steps { display: flex; gap: 0; margin-bottom: 40px; }
+.step { flex: 1; padding: 10px 0; border-bottom: 2px solid var(--border); font-family: var(--mono); font-size: 11px; letter-spacing: 0.1em; color: var(--muted); text-transform: uppercase; position: relative; }
+.step.active { border-bottom-color: var(--ink); color: var(--ink); }
+.step.done { border-bottom-color: var(--green); color: var(--green); }
+.step-num { margin-right: 8px; }
 
-  .intro {
-    margin-bottom: 48px;
-  }
-  .intro p {
-    font-size: 19px;
-    font-weight: 300;
-    color: var(--muted);
-    max-width: 620px;
-    line-height: 1.7;
-  }
+/* Form */
+.field { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; }
+label { font-size: 11px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); font-family: var(--mono); }
+input[type="text"], input[type="url"] { background: var(--warm); border: 1px solid var(--border); color: var(--ink); font-family: var(--mono); font-size: 13px; padding: 12px 14px; outline: none; transition: border-color 0.2s; width: 100%; }
+input:focus { border-color: var(--accent); }
 
-  /* ── Form ────────────────────────────────────────────────── */
-  .form-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 24px;
-    margin-bottom: 24px;
-  }
-  @media (max-width: 680px) { .form-grid { grid-template-columns: 1fr; } }
+.file-drop { background: var(--warm); border: 1px dashed var(--border); padding: 28px 20px; text-align: center; cursor: pointer; transition: border-color 0.2s; position: relative; }
+.file-drop:hover, .file-drop.drag { border-color: var(--accent); }
+.file-drop input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+.file-drop .drop-label { font-family: var(--mono); font-size: 12px; color: var(--muted); pointer-events: none; }
+.file-drop .drop-label strong { color: var(--ink); }
+.file-ok { font-family: var(--mono); font-size: 12px; color: var(--green); margin-top: 6px; }
 
-  .field {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-  }
-  .field.full { grid-column: 1 / -1; }
+.btn { border: none; font-family: var(--mono); font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; padding: 14px 32px; cursor: pointer; transition: background 0.2s, opacity 0.2s; display: inline-flex; align-items: center; gap: 10px; }
+.btn-primary { background: var(--ink); color: var(--cream); }
+.btn-primary:hover { background: #2d2926; }
+.btn-secondary { background: transparent; color: var(--ink); border: 1px solid var(--border); }
+.btn-secondary:hover { border-color: var(--ink); background: var(--warm); }
+.btn-green { background: var(--green); color: #fff; }
+.btn-green:hover { background: #3a5532; }
+.btn-red { background: var(--red); color: #fff; }
+.btn-red:hover { background: #722e2e; }
+.btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
-  label {
-    font-size: 11px;
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
-    color: var(--muted);
-    font-family: var(--mono);
-  }
+/* Section panels */
+.panel { display: none; margin-top: 40px; }
+.panel.visible { display: block; }
+.panel-title { font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted); font-family: var(--mono); margin-bottom: 16px; padding-bottom: 10px; border-bottom: 1px solid var(--border); }
 
-  input[type="text"], input[type="url"] {
-    background: var(--warm);
-    border: 1px solid var(--border);
-    color: var(--ink);
-    font-family: var(--mono);
-    font-size: 13px;
-    padding: 12px 14px;
-    outline: none;
-    transition: border-color 0.2s;
-    width: 100%;
-  }
-  input:focus { border-color: var(--accent); }
+/* Analysis box */
+.analysis-box { background: var(--warm); border: 1px solid var(--border); padding: 24px; font-size: 15px; line-height: 1.8; max-height: 280px; overflow-y: auto; }
+.analysis-box h2 { font-size: 18px; font-weight: 400; font-style: italic; margin: 16px 0 8px; }
+.analysis-box h2:first-child { margin-top: 0; }
+.analysis-box code { font-family: var(--mono); font-size: 12px; background: rgba(0,0,0,0.06); padding: 1px 5px; }
+.analysis-box table { border-collapse: collapse; width: 100%; margin: 12px 0; font-family: var(--mono); font-size: 12px; }
+.analysis-box td, .analysis-box th { border: 1px solid var(--border); padding: 6px 10px; }
+.analysis-box th { background: var(--cream); }
 
-  .file-drop {
-    background: var(--warm);
-    border: 1px dashed var(--border);
-    padding: 28px 20px;
-    text-align: center;
-    cursor: pointer;
-    transition: border-color 0.2s, background 0.2s;
-    position: relative;
-  }
-  .file-drop:hover, .file-drop.drag { border-color: var(--accent); background: #eae4d8; }
-  .file-drop input[type="file"] {
-    position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;
-  }
-  .file-drop .drop-label {
-    font-family: var(--mono);
-    font-size: 12px;
-    color: var(--muted);
-    pointer-events: none;
-  }
-  .file-drop .drop-label strong { color: var(--ink); }
-  .file-name {
-    font-family: var(--mono);
-    font-size: 12px;
-    color: var(--green);
-    margin-top: 6px;
-  }
+/* Variant summary */
+.variant-summary { display: flex; align-items: center; gap: 20px; margin: 20px 0; padding: 16px 20px; background: var(--warm); border: 1px solid var(--border); font-family: var(--mono); font-size: 13px; }
+.variant-count { font-size: 32px; font-family: var(--serif); font-style: italic; line-height: 1; }
 
-  .btn-primary {
-    background: var(--ink);
-    color: var(--cream);
-    border: none;
-    font-family: var(--mono);
-    font-size: 12px;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    padding: 14px 36px;
-    cursor: pointer;
-    transition: background 0.2s, transform 0.1s;
-    display: inline-flex;
-    align-items: center;
-    gap: 10px;
-  }
-  .btn-primary:hover { background: #2d2926; }
-  .btn-primary:active { transform: scale(0.98); }
-  .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
+/* Preview modal */
+.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(26,23,20,0.7); z-index: 100; align-items: center; justify-content: center; }
+.modal-overlay.visible { display: flex; }
+.modal { background: var(--cream); padding: 40px; max-width: 540px; width: 90%; }
+.modal h2 { font-size: 24px; font-weight: 400; font-style: italic; margin-bottom: 8px; }
+.modal p { color: var(--muted); font-size: 15px; margin-bottom: 24px; }
+.preview-img-wrap { background: #fff; border: 1px solid var(--border); margin-bottom: 28px; display: flex; align-items: center; justify-content: center; min-height: 220px; }
+.preview-img-wrap img { max-width: 100%; max-height: 360px; display: block; }
+.preview-img-wrap .loading-text { font-family: var(--mono); font-size: 12px; color: var(--muted); }
+.modal-actions { display: flex; gap: 12px; }
 
-  .btn-secondary {
-    background: transparent;
-    color: var(--ink);
-    border: 1px solid var(--border);
-    font-family: var(--mono);
-    font-size: 11px;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    padding: 10px 20px;
-    cursor: pointer;
-    transition: border-color 0.2s, background 0.2s;
-  }
-  .btn-secondary:hover { border-color: var(--ink); background: var(--warm); }
+/* Progress */
+.progress-wrap { margin: 24px 0; }
+.progress-bar-bg { background: var(--warm); border: 1px solid var(--border); height: 6px; margin-bottom: 12px; }
+.progress-bar-fill { height: 100%; background: var(--ink); transition: width 0.4s ease; }
+.progress-text { font-family: var(--mono); font-size: 12px; color: var(--muted); }
+.progress-text strong { color: var(--ink); }
+.current-variant { font-family: var(--mono); font-size: 12px; margin-top: 8px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-  /* ── Status / Log ────────────────────────────────────────── */
-  .status-bar {
-    display: none;
-    align-items: center;
-    gap: 12px;
-    margin: 32px 0 0;
-    padding: 14px 18px;
-    background: var(--warm);
-    border: 1px solid var(--border);
-    font-family: var(--mono);
-    font-size: 12px;
-  }
-  .status-bar.visible { display: flex; }
-  .spinner {
-    width: 14px; height: 14px;
-    border: 2px solid var(--border);
-    border-top-color: var(--accent);
-    border-radius: 50%;
-    animation: spin 0.8s linear infinite;
-    flex-shrink: 0;
-  }
-  @keyframes spin { to { transform: rotate(360deg); } }
+/* Done state */
+.done-box { padding: 28px; background: var(--warm); border: 1px solid var(--border); display: flex; align-items: center; gap: 24px; }
+.done-icon { font-size: 36px; }
+.done-details h3 { font-size: 20px; font-weight: 400; font-style: italic; margin-bottom: 4px; }
+.done-details p { font-family: var(--mono); font-size: 12px; color: var(--muted); }
+.failed-list { margin-top: 16px; font-family: var(--mono); font-size: 11px; color: var(--red); }
+.failed-list li { margin-bottom: 3px; }
 
-  /* ── Output ──────────────────────────────────────────────── */
-  #output { margin-top: 48px; display: none; }
-  #output.visible { display: block; }
+/* Script section */
+.script-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.script-header span { font-family: var(--mono); font-size: 11px; color: var(--muted); }
+pre#script-out { background: #1a1714; color: #e8e2d8; font-family: var(--mono); font-size: 12px; line-height: 1.6; padding: 24px; max-height: 400px; overflow: auto; }
 
-  .section-title {
-    font-size: 11px;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    color: var(--muted);
-    font-family: var(--mono);
-    margin-bottom: 16px;
-    padding-bottom: 10px;
-    border-bottom: 1px solid var(--border);
-  }
+/* Status / spinner */
+.status-row { display: none; align-items: center; gap: 12px; margin-top: 16px; font-family: var(--mono); font-size: 12px; color: var(--muted); }
+.status-row.visible { display: flex; }
+.spinner { width: 13px; height: 13px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; flex-shrink: 0; }
+@keyframes spin { to { transform: rotate(360deg); } }
 
-  .analysis-box {
-    background: var(--warm);
-    border: 1px solid var(--border);
-    padding: 24px 28px;
-    margin-bottom: 32px;
-    font-size: 16px;
-    line-height: 1.8;
-    white-space: pre-wrap;
-    max-height: 320px;
-    overflow-y: auto;
-  }
-  .analysis-box h2 { font-size: 18px; font-weight: 400; margin: 20px 0 8px; }
-  .analysis-box h2:first-child { margin-top: 0; }
-  .analysis-box table { border-collapse: collapse; width: 100%; margin: 12px 0; font-family: var(--mono); font-size: 12px; }
-  .analysis-box td, .analysis-box th { border: 1px solid var(--border); padding: 6px 10px; text-align: left; }
-  .analysis-box th { background: var(--cream); }
+.error-box { display: none; background: #fdf0f0; border: 1px solid #e8b4b4; color: var(--red); padding: 14px 18px; font-family: var(--mono); font-size: 12px; margin-top: 16px; }
+.error-box.visible { display: block; }
 
-  .script-container { position: relative; }
-  .script-actions {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 10px;
-    align-items: center;
-    justify-content: space-between;
-  }
-  .script-actions span {
-    font-family: var(--mono);
-    font-size: 11px;
-    color: var(--muted);
-  }
-
-  pre#script-output {
-    background: #1a1714;
-    color: #e8e2d8;
-    font-family: var(--mono);
-    font-size: 12.5px;
-    line-height: 1.6;
-    padding: 28px;
-    overflow-x: auto;
-    max-height: 520px;
-    overflow-y: auto;
-    white-space: pre;
-  }
-
-  .copy-toast {
-    position: fixed;
-    bottom: 32px;
-    left: 50%;
-    transform: translateX(-50%) translateY(20px);
-    background: var(--ink);
-    color: var(--cream);
-    font-family: var(--mono);
-    font-size: 11px;
-    letter-spacing: 0.1em;
-    padding: 10px 24px;
-    opacity: 0;
-    transition: opacity 0.3s, transform 0.3s;
-    pointer-events: none;
-  }
-  .copy-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
-
-  .instructions {
-    margin-top: 28px;
-    padding: 24px 28px;
-    background: var(--warm);
-    border-left: 3px solid var(--accent);
-    font-size: 15px;
-  }
-  .instructions h3 { font-size: 16px; font-weight: 500; margin-bottom: 12px; }
-  .instructions ol { padding-left: 20px; }
-  .instructions li { margin-bottom: 8px; }
-  .instructions code {
-    font-family: var(--mono);
-    font-size: 12px;
-    background: rgba(0,0,0,0.07);
-    padding: 2px 6px;
-  }
-
-  .error-box {
-    display: none;
-    background: #fdf0f0;
-    border: 1px solid #e8b4b4;
-    color: var(--red);
-    padding: 16px 20px;
-    font-family: var(--mono);
-    font-size: 13px;
-    margin-top: 20px;
-  }
-  .error-box.visible { display: block; }
-
-  /* Markdown rendering in analysis */
-  .md-rendered h2 { font-family: var(--serif); font-size: 20px; font-weight: 400; font-style: italic; margin: 20px 0 10px; }
-  .md-rendered p { margin-bottom: 12px; }
-  .md-rendered table { border-collapse: collapse; width: 100%; margin: 16px 0; }
-  .md-rendered td, .md-rendered th { border: 1px solid var(--border); padding: 8px 12px; font-family: var(--mono); font-size: 12px; }
-  .md-rendered th { background: #ede8dc; }
-  .md-rendered code { font-family: var(--mono); font-size: 12px; background: rgba(0,0,0,0.06); padding: 1px 5px; }
+.toast { position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%) translateY(16px); background: var(--ink); color: var(--cream); font-family: var(--mono); font-size: 11px; letter-spacing: 0.1em; padding: 10px 24px; opacity: 0; transition: all 0.3s; pointer-events: none; }
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 </style>
 </head>
 <body>
@@ -312,277 +128,367 @@
 </header>
 
 <main>
-  <div class="intro">
-    <p>Last opp en ferdig CSV fra CSV-agenten og lim inn leverandørens produktside. Agenten analyserer strukturen og genererer et Python-script som laster ned bilder for alle variantene.</p>
+
+  <!-- Server status -->
+  <div class="server-pill disconnected" id="serverPill">
+    <div class="dot"></div>
+    <span id="serverText">Kobler til lokal server…</span>
   </div>
 
-  <!-- Form -->
-  <div class="form-grid">
+  <!-- Step indicator -->
+  <div class="steps">
+    <div class="step active" id="step1"><span class="step-num">01</span>Input</div>
+    <div class="step" id="step2"><span class="step-num">02</span>Analyser</div>
+    <div class="step" id="step3"><span class="step-num">03</span>Forhåndsvisning</div>
+    <div class="step" id="step4"><span class="step-num">04</span>Nedlasting</div>
+    <div class="step" id="step5"><span class="step-num">05</span>Ferdig</div>
+  </div>
 
-    <div class="field full">
+  <!-- STEP 1: Input -->
+  <div id="panelInput">
+    <div class="field">
       <label>CSV-fil fra CSV-agenten</label>
       <div class="file-drop" id="dropZone">
         <input type="file" id="csvFile" accept=".csv">
-        <div class="drop-label">
-          <strong>Klikk for å velge</strong> eller dra CSV-filen hit
-        </div>
+        <div class="drop-label"><strong>Klikk for å velge</strong> eller dra CSV-filen hit</div>
       </div>
-      <div class="file-name" id="fileName"></div>
+      <div class="file-ok" id="fileName"></div>
     </div>
-
-    <div class="field full">
+    <div class="field">
       <label>Leverandørens produktside / konfigurator-URL</label>
-      <input type="url" id="supplierUrl" placeholder="https://store.flokk.com/norway/en-gb/products/9140/configure?...">
+      <input type="url" id="supplierUrl" placeholder="https://store.flokk.com/norway/en-gb/products/9140/configure?…">
     </div>
-
     <div class="field">
       <label>Produktnavn (valgfritt)</label>
       <input type="text" id="productName" placeholder="f.eks. HAG Celi 9140">
     </div>
-
     <input type="hidden" id="workerUrl" value="https://bildehenter-worker.marcus-aas-mekiassen.workers.dev">
-
+    <button class="btn btn-primary" id="analyzeBtn" onclick="startAnalysis()">Analyser</button>
+    <div class="status-row" id="analyzeStatus"><div class="spinner"></div><span id="analyzeText">Analyserer…</span></div>
+    <div class="error-box" id="analyzeError"></div>
   </div>
 
-  <button class="btn-primary" id="analyzeBtn" onclick="analyze()">
-    <span>Analyser og generer script</span>
-  </button>
+  <!-- STEP 2: Analysis result -->
+  <div class="panel" id="panelAnalysis">
+    <div class="panel-title">Analyse</div>
+    <div class="analysis-box" id="analysisBox"></div>
+    <div class="variant-summary">
+      <div class="variant-count" id="variantCount">0</div>
+      <div>
+        <strong style="font-family:var(--mono);font-size:13px" id="variantLabel">varianter funnet</strong><br>
+        <span style="font-family:var(--mono);font-size:11px;color:var(--muted)" id="productLabel"></span>
+      </div>
+    </div>
+    <button class="btn btn-primary" onclick="startPreview()">Hent forhåndsvisning</button>
+    <div class="status-row" id="previewStatus"><div class="spinner"></div><span>Laster ned første bilde via lokal server…</span></div>
 
-  <div class="status-bar" id="statusBar">
-    <div class="spinner"></div>
-    <span id="statusText">Analyserer leverandørsiden…</span>
-  </div>
-
-  <div class="error-box" id="errorBox"></div>
-
-  <!-- Output -->
-  <div id="output">
-
-    <div class="section-title">Analyse</div>
-    <div class="analysis-box md-rendered" id="analysisText"></div>
-
-    <div class="section-title">Generert Python-script</div>
-    <div class="script-container">
-      <div class="script-actions">
+    <!-- Python script (backup) -->
+    <div style="margin-top:36px">
+      <div class="panel-title">Python-script (alternativ kjøring)</div>
+      <div class="script-header">
         <span id="scriptMeta"></span>
-        <div style="display:flex;gap:10px">
-          <button class="btn-secondary" onclick="copyScript()">Kopier script</button>
-          <button class="btn-secondary" onclick="downloadScript()">Last ned .py</button>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-secondary" onclick="copyScript()" style="padding:8px 16px">Kopier</button>
+          <button class="btn btn-secondary" onclick="downloadScript()" style="padding:8px 16px">Last ned .py</button>
         </div>
       </div>
-      <pre id="script-output"></pre>
+      <pre id="script-out"></pre>
     </div>
+  </div>
 
-    <div class="instructions" id="instructions"></div>
+  <!-- STEP 4: Progress -->
+  <div class="panel" id="panelProgress">
+    <div class="panel-title">Laster ned bilder</div>
+    <div class="progress-wrap">
+      <div class="progress-bar-bg"><div class="progress-bar-fill" id="progressFill" style="width:0%"></div></div>
+      <div class="progress-text"><strong id="progressCount">0</strong> av <strong id="progressTotal">0</strong> bilder</div>
+      <div class="current-variant" id="currentVariant">Starter…</div>
+    </div>
+    <div class="progress-text" style="margin-top:12px;color:var(--green)" id="progressOk"></div>
+  </div>
 
+  <!-- STEP 5: Done -->
+  <div class="panel" id="panelDone">
+    <div class="done-box">
+      <div class="done-icon">✓</div>
+      <div class="done-details">
+        <h3 id="doneTitle">Nedlasting fullført</h3>
+        <p id="doneSubtitle"></p>
+        <ul class="failed-list" id="failedList"></ul>
+      </div>
+    </div>
+    <div style="margin-top:20px;display:flex;gap:12px">
+      <button class="btn btn-primary" onclick="triggerDownload()">Last ned ZIP</button>
+      <button class="btn btn-secondary" onclick="resetAll()">Last ned et nytt produkt</button>
+    </div>
   </div>
 
 </main>
 
-<div class="copy-toast" id="copyToast">Script kopiert</div>
+<!-- Preview modal -->
+<div class="modal-overlay" id="previewModal">
+  <div class="modal">
+    <h2>Ser dette riktig ut?</h2>
+    <p>Første bilde er hentet. Bekreft at stolen vises korrekt før vi laster ned alle <span id="totalCount">96</span> varianter.</p>
+    <div class="preview-img-wrap" id="previewWrap">
+      <span class="loading-text">Henter bilde…</span>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-green" onclick="confirmPreview(true)">Ja, last ned alle</button>
+      <button class="btn btn-red" onclick="confirmPreview(false)">Nei, avbryt</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
 
 <script>
-// ── State ──────────────────────────────────────────────────────────────────────
+const SERVER = "http://localhost:7823";
+const WORKER = document.getElementById("workerUrl").value;
+
 let csvContent   = "";
-let fullResponse = "";
 let scriptCode   = "";
+let variants     = [];
 let analysisText = "";
 
-// ── File drop ──────────────────────────────────────────────────────────────────
-const dropZone = document.getElementById("dropZone");
-const csvFile  = document.getElementById("csvFile");
+// ── Server ping ───────────────────────────────────────────────────────────────
+async function pingServer() {
+  try {
+    const r = await fetch(`${SERVER}/status`, { signal: AbortSignal.timeout(2000) });
+    if (r.ok) {
+      pill("connected", "Lokal server tilkoblet");
+      return true;
+    }
+  } catch {}
+  pill("disconnected", "Lokal server ikke funnet — kjør: python3 server.py");
+  return false;
+}
+function pill(cls, text) {
+  const el = document.getElementById("serverPill");
+  el.className = `server-pill ${cls}`;
+  document.getElementById("serverText").textContent = text;
+}
+setInterval(pingServer, 5000);
+pingServer();
 
-dropZone.addEventListener("dragover", e => { e.preventDefault(); dropZone.classList.add("drag"); });
-dropZone.addEventListener("dragleave", () => dropZone.classList.remove("drag"));
-dropZone.addEventListener("drop", e => {
-  e.preventDefault();
-  dropZone.classList.remove("drag");
-  const file = e.dataTransfer.files[0];
-  if (file) loadFile(file);
-});
-csvFile.addEventListener("change", e => {
-  if (e.target.files[0]) loadFile(e.target.files[0]);
-});
+// ── File drop ─────────────────────────────────────────────────────────────────
+const drop = document.getElementById("dropZone");
+drop.addEventListener("dragover", e => { e.preventDefault(); drop.classList.add("drag"); });
+drop.addEventListener("dragleave", () => drop.classList.remove("drag"));
+drop.addEventListener("drop", e => { e.preventDefault(); drop.classList.remove("drag"); if(e.dataTransfer.files[0]) loadFile(e.dataTransfer.files[0]); });
+document.getElementById("csvFile").addEventListener("change", e => { if(e.target.files[0]) loadFile(e.target.files[0]); });
 
 function loadFile(file) {
   document.getElementById("fileName").textContent = "✓ " + file.name;
-  const reader = new FileReader();
-  reader.onload = e => { csvContent = e.target.result; };
-  reader.readAsText(file, "UTF-8");
-  if (!document.getElementById("productName").value) {
-    const guess = file.name.replace(/\.csv$/i, "").replace(/_/g, " ");
-    document.getElementById("productName").value = guess;
+  const r = new FileReader();
+  r.onload = e => { csvContent = e.target.result; };
+  r.readAsText(file, "UTF-8");
+  if (!document.getElementById("productName").value)
+    document.getElementById("productName").value = file.name.replace(/\.csv$/i,"").replace(/_/g," ");
+}
+
+// ── Step indicator ─────────────────────────────────────────────────────────────
+function setStep(n) {
+  for (let i=1; i<=5; i++) {
+    const el = document.getElementById(`step${i}`);
+    el.className = "step" + (i<n?" done":i===n?" active":"");
   }
 }
 
-// ── Analyse ────────────────────────────────────────────────────────────────────
-async function analyze() {
-  const url        = document.getElementById("supplierUrl").value.trim();
-  const workerUrl  = document.getElementById("workerUrl").value.trim();
-  const productName= document.getElementById("productName").value.trim();
+// ── STEP 1→2: Analyse ─────────────────────────────────────────────────────────
+async function startAnalysis() {
+  if (!csvContent)  return alert("Last opp CSV-fil først.");
+  const url = document.getElementById("supplierUrl").value.trim();
+  if (!url)         return alert("Lim inn leverandørens URL.");
 
-  if (!csvContent) return alert("Last opp en CSV-fil først.");
-  if (!url)        return alert("Lim inn leverandørens URL.");
-
-  // Reset
-  fullResponse = ""; scriptCode = ""; analysisText = "";
-  document.getElementById("output").classList.remove("visible");
-  document.getElementById("errorBox").classList.remove("visible");
-  document.getElementById("analysisText").innerHTML = "";
-  document.getElementById("script-output").textContent = "";
-  document.getElementById("instructions").innerHTML = "";
-
-  setStatus(true, "Analyserer leverandørsiden…");
   document.getElementById("analyzeBtn").disabled = true;
+  showStatus("analyzeStatus", true);
+  hideError("analyzeError");
+  document.getElementById("analyzeText").textContent = "Analyserer leverandørsiden…";
 
   try {
-    const res = await fetch(workerUrl, {
+    const res = await fetch(WORKER, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ csv_content: csvContent, supplier_url: url, product_name: productName }),
+      headers: { "Content-Type":"application/json" },
+      body: JSON.stringify({
+        csv_content:   csvContent,
+        supplier_url:  url,
+        product_name:  document.getElementById("productName").value.trim(),
+      }),
     });
+    if (!res.ok) throw new Error(await res.text());
+    const data = await res.json();
 
-    if (!res.ok) throw new Error(`Worker svarte ${res.status}: ${await res.text()}`);
+    if (data.error && !data.variants?.length) throw new Error(data.error + "\n\n" + (data.raw_text||""));
 
-    const reader = res.body.getReader();
-    const dec    = new TextDecoder();
-    let buffer   = "";
+    variants      = data.variants || [];
+    scriptCode    = data.python_script || "";
+    analysisText  = data.analysis || "";
 
-    setStatus(true, "Genererer script…");
+    // Vis analyse
+    document.getElementById("analysisBox").innerHTML = md(analysisText);
+    document.getElementById("variantCount").textContent = variants.length;
+    document.getElementById("variantLabel").textContent = "varianter funnet";
+    document.getElementById("productLabel").textContent = data.product || data.supplier || "";
+    document.getElementById("totalCount").textContent   = variants.length;
 
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      buffer += dec.decode(value, { stream: true });
-      const lines = buffer.split("\n");
-      buffer = lines.pop();
+    // Script
+    document.getElementById("script-out").textContent = scriptCode;
+    document.getElementById("scriptMeta").textContent  = `${variants.length} varianter · backup-script`;
 
-      for (const line of lines) {
-        if (!line.startsWith("data: ")) continue;
-        const data = line.slice(6);
-        if (data === "[DONE]") continue;
-        try {
-          const parsed = JSON.parse(data);
-          if (parsed.text) {
-            fullResponse += parsed.text;
-            renderResponse(fullResponse);
-          }
-        } catch { /* ignore */ }
-      }
-    }
-
-    parseResponse(fullResponse);
-    setStatus(false);
-    document.getElementById("output").classList.add("visible");
+    showStatus("analyzeStatus", false);
+    document.getElementById("analyzeBtn").disabled = false;
+    document.getElementById("panelAnalysis").classList.add("visible");
+    setStep(2);
 
   } catch(err) {
-    setStatus(false);
-    showError(err.message);
-  } finally {
+    showStatus("analyzeStatus", false);
     document.getElementById("analyzeBtn").disabled = false;
+    showError("analyzeError", err.message);
   }
 }
 
-// ── Render streaming ───────────────────────────────────────────────────────────
-function renderResponse(text) {
-  // Live-preview av analyse-delen (alt før ```python)
-  const scriptStart = text.indexOf("```python");
-  const preview = scriptStart >= 0 ? text.slice(0, scriptStart) : text;
-  document.getElementById("analysisText").innerHTML = simpleMarkdown(preview);
+// ── STEP 2→3: Preview ─────────────────────────────────────────────────────────
+async function startPreview() {
+  if (!variants.length) return alert("Ingen varianter funnet.");
+  const ok = await pingServer();
+  if (!ok) return alert("Lokal server ikke kjørende.\nKjør: python3 server.py");
 
-  // Vis script live mens det strømmer
-  if (scriptStart >= 0) {
-    const afterPython = text.slice(scriptStart + 9);
-    const scriptEnd   = afterPython.indexOf("```");
-    const partial     = scriptEnd >= 0 ? afterPython.slice(0, scriptEnd) : afterPython;
-    document.getElementById("script-output").textContent = partial.trimStart();
-    document.getElementById("output").classList.add("visible");
+  showStatus("previewStatus", true);
+
+  // Send varianter til lokal server
+  try {
+    const r = await fetch(`${SERVER}/init`, {
+      method: "POST",
+      headers: { "Content-Type":"application/json" },
+      body: JSON.stringify({ variants }),
+    });
+    if (!r.ok) throw new Error(await r.text());
+  } catch(e) { showStatus("previewStatus", false); return alert("Feil ved init: " + e.message); }
+
+  // Start nedlasting
+  try {
+    const r = await fetch(`${SERVER}/start`, { method:"POST" });
+    if (!r.ok) throw new Error(await r.text());
+  } catch(e) { showStatus("previewStatus", false); return alert("Feil ved start: " + e.message); }
+
+  // Vis modal med spinner
+  document.getElementById("previewModal").classList.add("visible");
+  document.getElementById("previewWrap").innerHTML = '<span class="loading-text">Laster bilde…</span>';
+  setStep(3);
+
+  // Poll for preview image
+  try {
+    const r = await fetch(`${SERVER}/preview`);
+    if (!r.ok) throw new Error("Preview feilet");
+    const data = await r.json();
+    if (data.image) {
+      const img = document.createElement("img");
+      img.src = data.image;
+      document.getElementById("previewWrap").innerHTML = "";
+      document.getElementById("previewWrap").appendChild(img);
+    }
+  } catch(e) {
+    document.getElementById("previewWrap").innerHTML = `<span class="loading-text" style="color:var(--red)">${e.message}</span>`;
   }
+  showStatus("previewStatus", false);
 }
 
-function parseResponse(text) {
-  const scriptMatch = text.match(/```python\n?([\s\S]*?)```/);
-  scriptCode = scriptMatch ? scriptMatch[1].trim() : "";
-
-  const scriptStart = text.indexOf("```python");
-  const afterScript = scriptMatch ? text.slice(text.indexOf("```", scriptStart + 9) + 3) : "";
-
-  // Analyse-del (alt frem til scriptet, minus overskriften)
-  const beforeScript = scriptStart >= 0 ? text.slice(0, scriptStart) : text;
-  document.getElementById("analysisText").innerHTML = simpleMarkdown(beforeScript);
-
-  // Script
-  document.getElementById("script-output").textContent = scriptCode;
-
-  const variantCount = (csvContent.match(/;variation;/g) || []).length;
-  document.getElementById("scriptMeta").textContent =
-    `${variantCount} varianter funnet i CSV`;
-
-  // Instruksjoner
-  const instrMatch = afterScript.match(/##\s*Kjøreinstruksjoner([\s\S]*?)(?:##|$)/i);
-  const instrText  = instrMatch ? instrMatch[1].trim() : "";
-  document.getElementById("instructions").innerHTML =
-    `<h3>Slik kjører du scriptet</h3>` +
-    (instrText
-      ? simpleMarkdown(instrText)
-      : `<ol>
-           <li>Lagre scriptet som <code>last_ned_bilder.py</code></li>
-           <li>Åpne Terminal og naviger til mappen</li>
-           <li>Installer avhengigheter: <code>pip3 install playwright pillow && playwright install chromium</code></li>
-           <li>Kjør: <code>python3 last_ned_bilder.py</code></li>
-           <li>Bilder lagres i <code>bilder/</code>-mappen</li>
-         </ol>`
-    );
+// ── STEP 3→4: Confirm / abort ─────────────────────────────────────────────────
+async function confirmPreview(yes) {
+  document.getElementById("previewModal").classList.remove("visible");
+  if (!yes) {
+    await fetch(`${SERVER}/confirm`, { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({abort:true}) });
+    showToast("Nedlasting avbrutt");
+    setStep(1);
+    return;
+  }
+  // Signal server to continue
+  await fetch(`${SERVER}/confirm`, { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({abort:false}) });
+  setStep(4);
+  document.getElementById("panelProgress").classList.add("visible");
+  document.getElementById("progressTotal").textContent = variants.length;
+  listenToProgress();
 }
 
-// ── Hjelpefunksjoner ───────────────────────────────────────────────────────────
-function simpleMarkdown(text) {
-  return text
-    .replace(/^## (.+)$/gm, '<h2>$1</h2>')
-    .replace(/^### (.+)$/gm, '<h3 style="font-size:17px;font-weight:500;margin:16px 0 8px">$1</h3>')
-    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-    .replace(/`([^`]+)`/g, '<code>$1</code>')
-    .replace(/^\| (.+)$/gm, (_, row) => {
-      if (row.replace(/[|\s-]/g, '') === '') return '<tr><td colspan="10" style="border:none;height:4px"></td></tr>';
-      const cells = row.split('|').map(c => c.trim());
-      return '<tr>' + cells.map(c => `<td>${c}</td>`).join('') + '</tr>';
-    })
-    .replace(/(<tr>.*<\/tr>\n?)+/g, m => `<table>${m}</table>`)
-    .replace(/\n\n/g, '</p><p>')
-    .replace(/^(?!<[h|t|p])(.+)$/gm, '$1')
-    .replace(/<\/p><p>/g, '</p>\n<p>');
+// ── SSE progress ──────────────────────────────────────────────────────────────
+function listenToProgress() {
+  const es = new EventSource(`${SERVER}/events`);
+  es.onmessage = e => {
+    const msg = JSON.parse(e.data);
+
+    if (msg.type === "progress") {
+      const pct = Math.round((msg.current / msg.total) * 100);
+      document.getElementById("progressFill").style.width  = pct + "%";
+      document.getElementById("progressCount").textContent = msg.current;
+      document.getElementById("progressTotal").textContent = msg.total;
+      document.getElementById("currentVariant").textContent = msg.name || "";
+      document.getElementById("progressOk").textContent    = `${msg.ok} lastet ned`;
+    }
+    if (msg.type === "done") {
+      es.close();
+      showDone(msg);
+    }
+    if (msg.type === "error") {
+      es.close();
+      showToast("Feil: " + msg.text);
+    }
+  };
+  es.onerror = () => es.close();
 }
 
-function setStatus(visible, text = "") {
-  const bar = document.getElementById("statusBar");
-  bar.classList.toggle("visible", visible);
-  if (text) document.getElementById("statusText").textContent = text;
+function showDone(msg) {
+  setStep(5);
+  document.getElementById("panelProgress").classList.remove("visible");
+  document.getElementById("panelDone").classList.add("visible");
+  document.getElementById("doneTitle").textContent    = `${msg.ok} av ${variants.length} bilder lastet ned`;
+  document.getElementById("doneSubtitle").textContent = msg.zip ? "ZIP-fil er klar for nedlasting" : "Ingen bilder å pakke";
+  const fl = document.getElementById("failedList");
+  fl.innerHTML = "";
+  (msg.failed||[]).forEach(f => { const li=document.createElement("li"); li.textContent=f; fl.appendChild(li); });
+  if (msg.zip) triggerDownload();
 }
 
-function showError(msg) {
-  const box = document.getElementById("errorBox");
-  box.textContent = "Feil: " + msg;
-  box.classList.add("visible");
+function triggerDownload() {
+  window.location.href = `${SERVER}/download`;
 }
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+function resetAll() {
+  variants=[]; csvContent=""; scriptCode="";
+  ["panelAnalysis","panelProgress","panelDone"].forEach(id=>document.getElementById(id).classList.remove("visible"));
+  document.getElementById("analyzeError").classList.remove("visible");
+  document.getElementById("fileName").textContent="";
+  document.getElementById("csvFile").value="";
+  document.getElementById("supplierUrl").value="";
+  document.getElementById("productName").value="";
+  setStep(1);
+}
+
+function showStatus(id, show) { document.getElementById(id).classList.toggle("visible", show); }
+function hideError(id) { document.getElementById(id).classList.remove("visible"); }
+function showError(id, msg) { const el=document.getElementById(id); el.textContent=msg.slice(0,400); el.classList.add("visible"); }
+function showToast(msg) { const t=document.getElementById("toast"); t.textContent=msg; t.classList.add("show"); setTimeout(()=>t.classList.remove("show"),2500); }
 
 function copyScript() {
   if (!scriptCode) return;
-  navigator.clipboard.writeText(scriptCode).then(() => {
-    const toast = document.getElementById("copyToast");
-    toast.classList.add("show");
-    setTimeout(() => toast.classList.remove("show"), 2200);
-  });
+  navigator.clipboard.writeText(scriptCode).then(()=>showToast("Script kopiert"));
 }
-
 function downloadScript() {
   if (!scriptCode) return;
-  const name = (document.getElementById("productName").value || "bildehenter")
-    .toLowerCase().replace(/\s+/g, "_").replace(/[^a-z0-9_]/g, "");
-  const blob = new Blob([scriptCode], { type: "text/plain" });
-  const a    = document.createElement("a");
-  a.href     = URL.createObjectURL(blob);
-  a.download = `last_ned_bilder_${name}.py`;
+  const name = (document.getElementById("productName").value||"bildehenter").toLowerCase().replace(/\s+/g,"_").replace(/[^a-z0-9_]/g,"");
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([scriptCode],{type:"text/plain"}));
+  a.download = `last_ned_${name}.py`;
   a.click();
+}
+
+function md(text) {
+  return text
+    .replace(/^## (.+)$/gm,'<h2>$1</h2>')
+    .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
+    .replace(/`([^`]+)`/g,'<code>$1</code>')
+    .replace(/\n\n/g,'<br><br>');
 }
 </script>
 </body>
