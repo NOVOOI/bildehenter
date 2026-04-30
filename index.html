@@ -38,6 +38,9 @@ main { max-width: 900px; margin: 0 auto; padding: 48px 48px 80px; }
 label { font-size: 11px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); font-family: var(--mono); }
 input[type="text"], input[type="url"] { background: var(--warm); border: 1px solid var(--border); color: var(--ink); font-family: var(--mono); font-size: 13px; padding: 12px 14px; outline: none; transition: border-color 0.2s; width: 100%; }
 input:focus { border-color: var(--accent); }
+textarea { background: var(--warm); border: 1px solid var(--border); color: var(--ink); font-family: var(--mono); font-size: 13px; padding: 12px 14px; outline: none; transition: border-color 0.2s; width: 100%; resize: vertical; line-height: 1.6; }
+textarea:focus { border-color: var(--accent); }
+textarea::placeholder { color: var(--muted); }
 
 .file-drop { background: var(--warm); border: 1px dashed var(--border); padding: 28px 20px; text-align: center; cursor: pointer; transition: border-color 0.2s; position: relative; }
 .file-drop:hover, .file-drop.drag { border-color: var(--accent); }
@@ -163,6 +166,10 @@ pre#script-out { background: #1a1714; color: #e8e2d8; font-family: var(--mono); 
       <input type="text" id="productName" placeholder="f.eks. HAG Celi 9140">
     </div>
     <input type="hidden" id="workerUrl" value="https://bildehenter-worker.marcus-aas-mekiassen.workers.dev">
+    <div class="field">
+      <label>Instruksjoner til agenten (valgfritt)</label>
+      <textarea id="instructions" rows="3" placeholder="Eksempler:&#10;— Bare finn bilder til Celi 9140&#10;— Hopp over produktet SoFi 7300&#10;— Kun varianter med tekstil Cognac"></textarea>
+    </div>
     <button class="btn btn-primary" id="analyzeBtn" onclick="startAnalysis()">Analyser</button>
     <div class="status-row" id="analyzeStatus"><div class="spinner"></div><span id="analyzeText">Analyserer…</span></div>
     <div class="error-box" id="analyzeError"></div>
@@ -314,6 +321,7 @@ async function startAnalysis() {
         csv_content:   csvContent,
         supplier_url:  url,
         product_name:  document.getElementById("productName").value.trim(),
+        instructions:  document.getElementById("instructions").value.trim(),
       }),
     });
     if (!res.ok) throw new Error(await res.text());
@@ -462,6 +470,7 @@ function resetAll() {
   document.getElementById("csvFile").value="";
   document.getElementById("supplierUrl").value="";
   document.getElementById("productName").value="";
+  document.getElementById("instructions").value="";
   setStep(1);
 }
 
