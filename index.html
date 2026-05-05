@@ -79,6 +79,53 @@ textarea::placeholder { color: var(--muted); }
 .variant-count { font-size: 32px; font-family: var(--serif); font-style: italic; line-height: 1; }
 
 /* Preview modal */
+.picker-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-bottom: 4px;
+}
+@media (max-width: 600px) { .picker-grid { grid-template-columns: repeat(2, 1fr); } }
+
+.picker-item {
+  border: 2px solid var(--border);
+  background: #fff;
+  cursor: pointer;
+  position: relative;
+  aspect-ratio: 6/7;
+  overflow: hidden;
+  transition: border-color 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.picker-item:hover { border-color: var(--accent); }
+.picker-item.selected { border-color: var(--green); border-width: 3px; }
+.picker-item img { max-width: 100%; max-height: 100%; object-fit: contain; }
+.picker-item .checkmark {
+  display: none;
+  position: absolute;
+  top: 8px; right: 8px;
+  background: var(--green);
+  color: #fff;
+  border-radius: 50%;
+  width: 22px; height: 22px;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: bold;
+}
+.picker-item.selected .checkmark { display: flex; }
+.picker-score {
+  position: absolute;
+  bottom: 4px; left: 4px;
+  font-family: var(--mono);
+  font-size: 9px;
+  background: rgba(0,0,0,0.5);
+  color: #fff;
+  padding: 2px 5px;
+}
+
 .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(26,23,20,0.7); z-index: 100; align-items: center; justify-content: center; }
 .modal-overlay.visible { display: flex; }
 .modal { background: var(--cream); padding: 40px; max-width: 540px; width: 90%; }
@@ -142,7 +189,7 @@ pre#script-out { background: #1a1714; color: #e8e2d8; font-family: var(--mono); 
   <div class="steps">
     <div class="step active" id="step1"><span class="step-num">01</span>Input</div>
     <div class="step" id="step2"><span class="step-num">02</span>Analyser</div>
-    <div class="step" id="step3"><span class="step-num">03</span>Forhåndsvisning</div>
+    <div class="step" id="step3"><span class="step-num">03</span>Velg bilde</div>
     <div class="step" id="step4"><span class="step-num">04</span>Nedlasting</div>
     <div class="step" id="step5"><span class="step-num">05</span>Ferdig</div>
   </div>
@@ -186,8 +233,13 @@ pre#script-out { background: #1a1714; color: #e8e2d8; font-family: var(--mono); 
         <span style="font-family:var(--mono);font-size:11px;color:var(--muted)" id="productLabel"></span>
       </div>
     </div>
-    <button class="btn btn-primary" onclick="startPreview()">Hent forhåndsvisning</button>
-    <div class="status-row" id="previewStatus"><div class="spinner"></div><span>Laster ned første bilde via lokal server…</span></div>
+    <div id="altPreview" style="display:none;margin-bottom:20px;background:var(--warm);border:1px solid var(--border);padding:16px 20px">
+      <div style="font-family:var(--mono);font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:var(--muted);margin-bottom:10px">Eksempel på alt-tekst</div>
+      <div id="altExample" style="font-family:var(--mono);font-size:12px;line-height:1.6;color:var(--ink)"></div>
+      <div style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:8px">Alle <span id="altCount">0</span> varianter får tilpassede alt-tekster. Lagres i <strong>alt_tekst.csv</strong> i ZIP-filen.</div>
+    </div>
+    <button class="btn btn-primary" onclick="startCalibration()">Velg riktig bilde</button>
+    <div class="status-row" id="previewStatus"><div class="spinner"></div><span id="calibrateStatusText">Laster bilder fra leverandørsiden…</span></div>
 
     <!-- Python script (backup) -->
     <div style="margin-top:36px">
@@ -200,6 +252,34 @@ pre#script-out { background: #1a1714; color: #e8e2d8; font-family: var(--mono); 
         </div>
       </div>
       <pre id="script-out"></pre>
+    </div>
+  </div>
+
+  <!-- STEP 3: Velg bilde -->
+  <div class="panel" id="panelPicker">
+    <div class="panel-title">Velg bildet som viser hele produktet</div>
+    <p style="font-family:var(--mono);font-size:12px;color:var(--muted);margin-bottom:20px">
+      Klikk på bildet som viser stolen/produktet korrekt. Grønn ramme = valgt.
+    </p>
+
+    <div class="picker-grid" id="pickerGrid"></div>
+
+    <div style="margin-top:20px;display:flex;gap:12px;align-items:center;flex-wrap:wrap">
+      <button class="btn btn-green" id="confirmPickBtn" onclick="confirmPick()" disabled>Bekreft valg og last ned alle</button>
+      <button class="btn btn-secondary" id="nextBatchBtn" onclick="nextBatch()">Vis 5 nye bilder</button>
+      <span style="font-family:var(--mono);font-size:11px;color:var(--muted)" id="batchInfo"></span>
+    </div>
+
+    <div id="refinementArea" style="display:none;margin-top:28px;padding-top:24px;border-top:1px solid var(--border)">
+      <div class="panel-title">Ikke riktig? Beskriv hva som mangler</div>
+      <p style="font-family:var(--mono);font-size:12px;color:var(--muted);margin-bottom:12px">
+        Fortell hva agenten fant og hva som mangler — f.eks. "Den viser bare hjul, ikke hele stolen"
+      </p>
+      <textarea id="refinementComment" rows="3" placeholder="F.eks: Alle bildene viser enkeltkomponenter (hjul, sete). Jeg trenger et bilde der hele stolen er synlig fra siden."></textarea>
+      <div style="margin-top:12px">
+        <button class="btn btn-primary" onclick="refineWithComment()">Send til agent og prøv igjen</button>
+      </div>
+      <div class="status-row" id="refineStatus" style="margin-top:12px"><div class="spinner"></div><span>Analyserer på nytt…</span></div>
     </div>
   </div>
 
@@ -232,20 +312,7 @@ pre#script-out { background: #1a1714; color: #e8e2d8; font-family: var(--mono); 
 
 </main>
 
-<!-- Preview modal -->
-<div class="modal-overlay" id="previewModal">
-  <div class="modal">
-    <h2>Ser dette riktig ut?</h2>
-    <p>Første bilde er hentet. Bekreft at stolen vises korrekt før vi laster ned alle <span id="totalCount">96</span> varianter.</p>
-    <div class="preview-img-wrap" id="previewWrap">
-      <span class="loading-text">Henter bilde…</span>
-    </div>
-    <div class="modal-actions">
-      <button class="btn btn-green" onclick="confirmPreview(true)">Ja, last ned alle</button>
-      <button class="btn btn-red" onclick="confirmPreview(false)">Nei, avbryt</button>
-    </div>
-  </div>
-</div>
+<!-- Preview modal fjernet – erstattet av bildevelger -->
 
 <div class="toast" id="toast"></div>
 
@@ -340,6 +407,14 @@ async function startAnalysis() {
     document.getElementById("productLabel").textContent = data.product || data.supplier || "";
     document.getElementById("totalCount").textContent   = variants.length;
 
+    // Show alt text preview
+    const withAlt = variants.filter(v => v.alt_text);
+    if (withAlt.length > 0) {
+      document.getElementById("altPreview").style.display = "block";
+      document.getElementById("altExample").textContent   = withAlt[0].alt_text;
+      document.getElementById("altCount").textContent     = withAlt.length;
+    }
+
     // Script
     document.getElementById("script-out").textContent = scriptCode;
     document.getElementById("scriptMeta").textContent  = `${variants.length} varianter · backup-script`;
@@ -357,14 +432,21 @@ async function startAnalysis() {
 }
 
 // ── STEP 2→3: Preview ─────────────────────────────────────────────────────────
-async function startPreview() {
+// ── Kalibrering state ─────────────────────────────────────────────────────────
+let currentBatch    = 0;
+let selectedUrl     = null;
+let hasMore         = false;
+let batchesShown    = 0;
+
+async function startCalibration() {
   if (!variants.length) return alert("Ingen varianter funnet.");
   const ok = await pingServer();
   if (!ok) return alert("Lokal server ikke kjørende.\nKjør: python3 server.py");
 
   showStatus("previewStatus", true);
+  document.getElementById("calibrateStatusText").textContent = "Sender varianter til server…";
 
-  // Send varianter til lokal server
+  // Init server med varianter
   try {
     const r = await fetch(`${SERVER}/init`, {
       method: "POST",
@@ -372,51 +454,157 @@ async function startPreview() {
       body: JSON.stringify({ variants }),
     });
     if (!r.ok) throw new Error(await r.text());
-  } catch(e) { showStatus("previewStatus", false); return alert("Feil ved init: " + e.message); }
+  } catch(e) { showStatus("previewStatus", false); return alert("Init feilet: " + e.message); }
+
+  // Start kalibrering
+  document.getElementById("calibrateStatusText").textContent = "Laster leverandørside og henter kandidatbilder (30–60 sek)…";
+  try {
+    const r = await fetch(`${SERVER}/calibrate`, { method:"POST" });
+    if (!r.ok) throw new Error(await r.text());
+    const data = await r.json();
+
+    showStatus("previewStatus", false);
+    currentBatch = 0;
+    batchesShown = 1;
+    selectedUrl  = null;
+    hasMore      = data.has_more;
+
+    renderPickerGrid(data.images, data.total, 0);
+    setStep(3);
+    document.getElementById("panelPicker").classList.add("visible");
+
+  } catch(e) {
+    showStatus("previewStatus", false);
+    alert("Kalibrering feilet: " + e.message);
+  }
+}
+
+function renderPickerGrid(images, total, batch) {
+  const grid = document.getElementById("pickerGrid");
+  grid.innerHTML = "";
+  selectedUrl = null;
+  document.getElementById("confirmPickBtn").disabled = true;
+
+  images.forEach((item, i) => {
+    const div = document.createElement("div");
+    div.className = "picker-item";
+    div.innerHTML = `
+      <img src="${item.image}" alt="Kandidat ${i+1}">
+      <div class="picker-score">score: ${item.score}</div>
+      <div class="checkmark">✓</div>`;
+    div.onclick = () => selectPickerItem(div, item.url);
+    grid.appendChild(div);
+  });
+
+  const start = batch * 5 + 1;
+  const end   = Math.min(batch * 5 + images.length, total);
+  document.getElementById("batchInfo").textContent = `Viser ${start}–${end} av ${total} kandidater`;
+  document.getElementById("nextBatchBtn").style.display = hasMore ? "inline-flex" : "none";
+
+  // Vis refinement-felt etter 2 batches uten valg
+  if (batchesShown >= 2) {
+    document.getElementById("refinementArea").style.display = "block";
+  }
+}
+
+function selectPickerItem(el, url) {
+  document.querySelectorAll(".picker-item").forEach(x => x.classList.remove("selected"));
+  el.classList.add("selected");
+  selectedUrl = url;
+  document.getElementById("confirmPickBtn").disabled = false;
+}
+
+async function nextBatch() {
+  batchesShown++;
+  showStatus("previewStatus", true);
+  document.getElementById("calibrateStatusText").textContent = "Henter neste batch…";
+  try {
+    const r = await fetch(`${SERVER}/next_candidates`, {
+      method: "POST",
+      headers: { "Content-Type":"application/json" },
+      body: JSON.stringify({ batch: currentBatch }),
+    });
+    const data = await r.json();
+    currentBatch = data.batch;
+    hasMore      = data.has_more;
+    showStatus("previewStatus", false);
+    renderPickerGrid(data.images, data.total, data.batch);
+  } catch(e) {
+    showStatus("previewStatus", false);
+    showToast("Feil: " + e.message);
+  }
+}
+
+async function confirmPick() {
+  if (!selectedUrl) return;
+
+  // Lagre valgt URL-mønster på server
+  try {
+    const r = await fetch(`${SERVER}/select_candidate`, {
+      method: "POST",
+      headers: { "Content-Type":"application/json" },
+      body: JSON.stringify({ url: selectedUrl }),
+    });
+    const data = await r.json();
+    showToast(`Valgt CDN: ${data.domain || "ok"}`);
+  } catch(e) {
+    return alert("Feil ved valg: " + e.message);
+  }
 
   // Start nedlasting
   try {
     const r = await fetch(`${SERVER}/start`, { method:"POST" });
     if (!r.ok) throw new Error(await r.text());
-  } catch(e) { showStatus("previewStatus", false); return alert("Feil ved start: " + e.message); }
+  } catch(e) { return alert("Start feilet: " + e.message); }
 
-  // Vis modal med spinner
-  document.getElementById("previewModal").classList.add("visible");
-  document.getElementById("previewWrap").innerHTML = '<span class="loading-text">Laster bilde…</span>';
-  setStep(3);
-
-  // Poll for preview image
-  try {
-    const r = await fetch(`${SERVER}/preview`);
-    if (!r.ok) throw new Error("Preview feilet");
-    const data = await r.json();
-    if (data.image) {
-      const img = document.createElement("img");
-      img.src = data.image;
-      document.getElementById("previewWrap").innerHTML = "";
-      document.getElementById("previewWrap").appendChild(img);
-    }
-  } catch(e) {
-    document.getElementById("previewWrap").innerHTML = `<span class="loading-text" style="color:var(--red)">${e.message}</span>`;
-  }
-  showStatus("previewStatus", false);
-}
-
-// ── STEP 3→4: Confirm / abort ─────────────────────────────────────────────────
-async function confirmPreview(yes) {
-  document.getElementById("previewModal").classList.remove("visible");
-  if (!yes) {
-    await fetch(`${SERVER}/confirm`, { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({abort:true}) });
-    showToast("Nedlasting avbrutt");
-    setStep(1);
-    return;
-  }
-  // Signal server to continue
-  await fetch(`${SERVER}/confirm`, { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({abort:false}) });
+  document.getElementById("panelPicker").classList.remove("visible");
   setStep(4);
   document.getElementById("panelProgress").classList.add("visible");
   document.getElementById("progressTotal").textContent = variants.length;
   listenToProgress();
+}
+
+async function refineWithComment() {
+  const comment = document.getElementById("refinementComment").value.trim();
+  if (!comment) return alert("Skriv en kommentar først.");
+
+  showStatus("refineStatus", true);
+
+  // Kall worker på nytt med kommentar
+  try {
+    const url         = document.getElementById("supplierUrl").value.trim();
+    const productName = document.getElementById("productName").value.trim();
+    const instrField  = document.getElementById("instructions");
+    const prevInstr   = instrField ? instrField.value.trim() : "";
+    const combined    = prevInstr ? prevInstr + "\n\n" + comment : comment;
+
+    const r = await fetch(WORKER, {
+      method: "POST",
+      headers: { "Content-Type":"application/json" },
+      body: JSON.stringify({
+        csv_content:  csvContent,
+        supplier_url: url,
+        product_name: productName,
+        instructions: combined,
+      }),
+    });
+    if (!r.ok) throw new Error(await r.text());
+    const data = await r.json();
+    if (data.variants?.length) {
+      variants   = data.variants;
+      scriptCode = data.python_script || scriptCode;
+      showToast(`Ny analyse: ${variants.length} varianter`);
+    }
+  } catch(e) {
+    showStatus("refineStatus", false);
+    return alert("Feil: " + e.message);
+  }
+
+  // Kjør kalibrering på nytt
+  showStatus("refineStatus", false);
+  document.getElementById("refinementArea").style.display = "none";
+  batchesShown = 0;
+  await startCalibration();
 }
 
 // ── SSE progress ──────────────────────────────────────────────────────────────
@@ -464,7 +652,10 @@ function triggerDownload() {
 // ── Helpers ───────────────────────────────────────────────────────────────────
 function resetAll() {
   variants=[]; csvContent=""; scriptCode="";
-  ["panelAnalysis","panelProgress","panelDone"].forEach(id=>document.getElementById(id).classList.remove("visible"));
+  ["panelAnalysis","panelPicker","panelProgress","panelDone"].forEach(id=>document.getElementById(id).classList.remove("visible"));
+  document.getElementById("pickerGrid").innerHTML = "";
+  document.getElementById("refinementArea").style.display = "none";
+  selectedUrl = null; currentBatch = 0; batchesShown = 0;
   document.getElementById("analyzeError").classList.remove("visible");
   document.getElementById("fileName").textContent="";
   document.getElementById("csvFile").value="";
