@@ -408,6 +408,7 @@ async function startAnalysis() {
     const markerIdx = raw.indexOf(marker);
     if (markerIdx === -1) throw new Error("Tomt svar fra worker – prøv igjen. (Råtekst: " + raw.slice(-200) + ")");
     const jsonStr = raw.slice(markerIdx + marker.length).trim();
+    console.log("RAW SVAR:", raw.slice(-500));
     const data = JSON.parse(jsonStr);
 
     if (data.error && !data.variants?.length) throw new Error(data.error + "\n\n" + (data.raw_text||""));
