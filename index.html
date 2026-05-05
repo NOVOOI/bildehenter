@@ -392,7 +392,21 @@ async function startAnalysis() {
       }),
     });
     if (!res.ok) throw new Error(await res.text());
-    const data = await res.json();
+
+    // Les streamed svar – worker sender spaces som heartbeat, JSON kommer til slutt
+    document.getElementById("analyzeText").textContent = "Claude analyserer siden… (kan ta 30–60 sek)";
+    const reader = res.body.getReader();
+    const dec    = new TextDecoder();
+    let raw      = "";
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      raw += dec.decode(value, { stream: true });
+    }
+    // JSON er på siste ikke-tomme linje
+    const lastLine = raw.trim().split("\n").filter(l => l.trim().startsWith("{")).pop() || "";
+    if (!lastLine) throw new Error("Tomt svar fra worker – prøv igjen");
+    const data = JSON.parse(lastLine);
 
     if (data.error && !data.variants?.length) throw new Error(data.error + "\n\n" + (data.raw_text||""));
 
