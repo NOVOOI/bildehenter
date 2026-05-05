@@ -361,6 +361,24 @@ function loadFile(file) {
     document.getElementById("productName").value = file.name.replace(/\.csv$/i,"").replace(/_/g," ");
 }
 
+// ── Parser for worker linje-format ───────────────────────────────────────────
+function parseWorkerLines(text) {
+  const result = { analysis: "", supplier: "", product: "", variants: [] };
+  const lines  = text.split("\n");
+  for (const line of lines) {
+    if (line.startsWith("ANALYSIS: ")) result.analysis  = line.slice(10).trim();
+    if (line.startsWith("SUPPLIER: ")) result.supplier  = line.slice(10).trim();
+    if (line.startsWith("PRODUCT: "))  result.product   = line.slice(9).trim();
+    if (line.startsWith("VARIANT: ")) {
+      try {
+        const v = JSON.parse(line.slice(9).trim());
+        if (v.name && v.url) result.variants.push(v);
+      } catch {}
+    }
+  }
+  return result;
+}
+
 // ── Step indicator ─────────────────────────────────────────────────────────────
 function setStep(n) {
   for (let i=1; i<=5; i++) {
@@ -393,7 +411,7 @@ async function startAnalysis() {
     });
     if (!res.ok) throw new Error(await res.text());
 
-    // Les streamed svar – worker sender spaces som heartbeat, JSON kommer til slutt
+    // Les streamed svar
     document.getElementById("analyzeText").textContent = "Claude analyserer siden… (kan ta 30–60 sek)";
     const reader = res.body.getReader();
     const dec    = new TextDecoder();
@@ -403,15 +421,25 @@ async function startAnalysis() {
       if (done) break;
       raw += dec.decode(value, { stream: true });
     }
-    // JSON er markert med ---JSON--- delimiter
-    const marker = "---JSON---";
-    const markerIdx = raw.indexOf(marker);
-    if (markerIdx === -1) throw new Error("Tomt svar fra worker – prøv igjen. (Råtekst: " + raw.slice(-200) + ")");
-    const jsonStr = raw.slice(markerIdx + marker.length).trim();
-    console.log("RAW SVAR:", raw.slice(-500));
-    const data = JSON.parse(jsonStr);
 
-    if (data.error && !data.variants?.length) throw new Error(data.error + "\n\n" + (data.raw_text||""));
+    console.log("Worker svar (siste 500 tegn):", raw.slice(-500));
+
+    // Ekstraher innhold mellom ---START--- og ---END---
+    const startIdx = raw.indexOf("---START---");
+    const endIdx   = raw.indexOf("---END---");
+    if (startIdx === -1) {
+      throw new Error("Ingen respons fra worker. Råtekst: " + raw.slice(0, 300));
+    }
+    const fullText = raw.slice(startIdx + 11, endIdx > -1 ? endIdx : undefined).trim();
+
+    // Sjekk for feil
+    if (fullText.startsWith("ERROR:")) throw new Error(fullText);
+
+    // Parse linje-format
+    const data = parseWorkerLines(fullText);
+    if (!data.variants?.length) {
+      throw new Error("Ingen varianter funnet. Svar fra Claude:\n\n" + fullText.slice(0, 400));
+    }
 
     variants      = data.variants || [];
     scriptCode    = data.python_script || "";
