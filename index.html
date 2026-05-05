@@ -361,6 +361,48 @@ function loadFile(file) {
     document.getElementById("productName").value = file.name.replace(/\.csv$/i,"").replace(/_/g," ");
 }
 
+// ── CSV-filtrering: trekk ut relevante rader ─────────────────────────────────
+function filterCsvForProduct(csv, instructions) {
+  const lines = csv.split("\n");
+  if (!lines.length) return csv;
+
+  const header = lines[0];
+
+  // Finn produktnavn nevnt i instruksjoner
+  const instrLower = (instructions || "").toLowerCase();
+  const productName = document.getElementById("productName").value.trim().toLowerCase();
+
+  // Bygg søketermer fra instruksjoner og produktnavn-felt
+  const terms = [];
+  // Ekstraher ord/fraser etter "til", "for", "bare", "kun", "only"
+  const matches = instrLower.match(/(?:til|for|bare|kun|only|find|images? for)\s+([a-zæøå0-9 ]+)/gi) || [];
+  matches.forEach(m => {
+    const term = m.replace(/^(til|for|bare|kun|only|find|images? for)\s+/i, "").trim();
+    if (term.length > 2) terms.push(term.toLowerCase());
+  });
+  if (productName.length > 2) terms.push(productName);
+
+  if (!terms.length) {
+    // Ingen filter – send de første 20000 tegnene
+    return csv.slice(0, 20000);
+  }
+
+  // Filtrer rader som inneholder minst ett av søketermene
+  const matching = lines.slice(1).filter(line => {
+    const low = line.toLowerCase();
+    return terms.some(t => low.includes(t));
+  });
+
+  if (!matching.length) {
+    // Ingen treff – send hele CSV-en avkortet
+    console.log("CSV-filter: ingen treff for", terms, "– sender full CSV");
+    return csv.slice(0, 20000);
+  }
+
+  console.log(`CSV-filter: ${matching.length} rader funnet for`, terms);
+  return [header, ...matching].join("\n");
+}
+
 // ── Parser for worker linje-format ───────────────────────────────────────────
 function parseWorkerLines(text) {
   const result = { analysis: "", supplier: "", product: "", variants: [] };
@@ -627,7 +669,7 @@ async function refineWithComment() {
       method: "POST",
       headers: { "Content-Type":"application/json" },
       body: JSON.stringify({
-        csv_content:  csvContent,
+        csv_content:  filterCsvForProduct(csvContent, combined),
         supplier_url: url,
         product_name: productName,
         instructions: combined,
