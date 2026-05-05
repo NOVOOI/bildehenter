@@ -403,10 +403,12 @@ async function startAnalysis() {
       if (done) break;
       raw += dec.decode(value, { stream: true });
     }
-    // JSON er på siste ikke-tomme linje
-    const lastLine = raw.trim().split("\n").filter(l => l.trim().startsWith("{")).pop() || "";
-    if (!lastLine) throw new Error("Tomt svar fra worker – prøv igjen");
-    const data = JSON.parse(lastLine);
+    // JSON er markert med ---JSON--- delimiter
+    const marker = "---JSON---";
+    const markerIdx = raw.indexOf(marker);
+    if (markerIdx === -1) throw new Error("Tomt svar fra worker – prøv igjen. (Råtekst: " + raw.slice(-200) + ")");
+    const jsonStr = raw.slice(markerIdx + marker.length).trim();
+    const data = JSON.parse(jsonStr);
 
     if (data.error && !data.variants?.length) throw new Error(data.error + "\n\n" + (data.raw_text||""));
 
